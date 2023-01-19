@@ -3,9 +3,31 @@ import express from 'express'
 import path from 'path'
 import cookieParser from 'cookie-parser'
 import logger from 'morgan'
+import mongoose from 'mongoose'
+
+const API_VERSION = '0.0.1'
+const API_ROUTE = `collective_musicians_${API_VERSION}`
 
 import indexRouter from './routes/index'
 import usersRouter from './routes/users'
+
+const connect = mongoose.connect(
+  process.env.MONGO_URL,
+  {
+    keepAlive: true,
+    keepAliveInitialDelay: 300000,
+    useNewUrlParser: true,
+    useFindAndModify: false,
+    useUnifiedTopology: true,
+    useCreateIndex: true,
+    autoIndex: process.env.PROD !== 'true'
+  }
+)
+
+connect.then(
+  () => console.log(`Collective Musicians ${API_VERSION} database connection established`),
+  error => console.error(error)
+)
 
 const app = express();
 
