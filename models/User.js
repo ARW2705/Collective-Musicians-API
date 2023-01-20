@@ -1,4 +1,6 @@
 import { Schema, model } from 'mongoose'
+import passportLocalMongoose from 'passport-local-mongoose'
+
 import uniqueValidator from 'mongoose-unique-validator'
 
 const userSchema = new Schema({
@@ -23,5 +25,6 @@ const userSchema = new Schema({
 })
 
 userSchema.plugin(uniqueValidator)
+userSchema.plugin(passportLocalMongoose)
 
 export default model('User', userSchema)
