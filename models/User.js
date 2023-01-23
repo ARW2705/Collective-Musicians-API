@@ -1,7 +1,7 @@
 import { Schema, model } from 'mongoose'
+import uniqueValidator from 'mongoose-unique-validator'
 import passportLocalMongoose from 'passport-local-mongoose'
 
-import uniqueValidator from 'mongoose-unique-validator'
 
 const userSchema = new Schema({
   username: {
@@ -21,10 +21,19 @@ const userSchema = new Schema({
   editor: {
     type: Boolean,
     default: false
+  },
+  hash: {
+    type: String,
+    select: false
+  },
+  salt: {
+    type: String,
+    select: false
   }
 })
 
 userSchema.plugin(uniqueValidator)
 userSchema.plugin(passportLocalMongoose)
+
 
 export default model('User', userSchema)
