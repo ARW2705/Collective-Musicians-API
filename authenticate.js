@@ -3,6 +3,7 @@ import passport from 'passport'
 import { Strategy as LocalStrategy } from 'passport-local'
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
 import jwt from 'jsonwebtoken'
+
 import User from './models/User'
 
 
@@ -22,14 +23,14 @@ passport.use(new JwtStrategy(jwtStragetyOptions, (jwt_payload, done) => {
   })
 }))
 
-const getToken = user => jwt.sign(user, process.env.TOKEN_KEY, {expiresIn: '30d'})
+const generateToken = user => jwt.sign(user.toJSON(), process.env.TOKEN_KEY, {expiresIn: '30d'})
 const verifyUser = passport.authenticate('jwt', {session: false})
 const verifyAdmin = (req, res, next) => req.user.admin ? next() : next(createError(403))
 const verifyEditor = (req, res, next) => (req.user.editor || req.user.admin) ? next() : next(createError(403))
 
 
 export {
-  getToken,
+  generateToken,
   verifyUser,
   verifyAdmin,
   verifyEditor
