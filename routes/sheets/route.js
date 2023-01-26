@@ -1,6 +1,8 @@
 import { Router } from 'express'
+import createError from 'http-errors'
 import { verifyUser } from '../../authenticate'
 import { getSpreadSheetMetaData, getSheetValues, mapColumns, getColumnMap } from '../../sheets-connector/connector'
+import { queryToRange } from './helpers'
 
 
 const sheetsRouter = Router()
@@ -9,6 +11,7 @@ sheetsRouter.route('/:spreadsheetId')
   .get(verifyUser, async (req, res, next) => {
     try {
       const response = await getSpreadSheetMetaData(req.params.spreadsheetId)
+      
       res.statusCode = 200
       res.setHeader('content-type', 'application/json')
       res.json(response)
@@ -20,13 +23,16 @@ sheetsRouter.route('/:spreadsheetId')
 sheetsRouter.route('/:spreadsheetId/query')
   .get(verifyUser, async (req, res, next) => {
     try {
-      const { sheetName } = req.query
-      const response = await getSheetValues(req.params.spreadsheetId, `${sheetName}!1:1`)
+      const { sheetName, rowStart, rowEnd, colStart, colEnd } = req.query
+      const range = queryToRange(sheetName, rowStart, rowEnd, colStart, colEnd)
+      const response = await getSheetValues(req.params.spreadsheetId, range)
+
       res.statusCode = 200
       res.setHeader('content-type', 'application/json')
       res.json(response)
     } catch (error) {
-      return next(error)
+      console.log(error)
+      return next(error.name === 'QueryError' ? createError(400, error.message) : error)
     }
   })
 
