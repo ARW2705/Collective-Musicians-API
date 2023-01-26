@@ -12,6 +12,7 @@ const alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M
  *  702 -> 'AAA'
  */
 function indexToColAlpha(index) {
+  if (index < 0) return ''
   if (index < alphabet.length) return alphabet[index]
   
   return (
