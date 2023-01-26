@@ -5,9 +5,9 @@ import cookieParser from 'cookie-parser'
 import logger from 'morgan'
 import mongoose from 'mongoose'
 import indexRouter from './routes/index'
+import sheetsRouter from './routes/sheets/route'
 import usersRouter from './routes/users/route'
 import { API_VERSION } from './shared/api-version'
-
 
 const connect = mongoose.connect(
   process.env.MONGO_URL,
@@ -41,6 +41,7 @@ app.use(express.static(path.join(__dirname, 'public')))
 
 const API_ROUTE = `collective_musicians_${API_VERSION}`
 app.use('/', indexRouter)
+app.use(`/${API_ROUTE}/spreadsheets`, sheetsRouter)
 app.use(`/${API_ROUTE}/users`, usersRouter)
 
 // catch routes not using the API route
