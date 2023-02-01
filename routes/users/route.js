@@ -3,7 +3,7 @@ import createError from 'http-errors'
 import passport from 'passport'
 import { verifyAdmin, verifyUser } from '../../authenticate.js'
 import User from '../../models/User.js'
-import handleError from '../../shared/custom-error-handlers/handle-error.js'
+import handleError from '../../shared/error-handling/handle-error.js'
 import { composeAuthorizedUserResponse } from './helpers.js'
 
 
