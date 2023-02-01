@@ -4,10 +4,34 @@
  * Module dependencies.
  */
 
-import app from '../app'
+import http from 'http'
+import mongoose from 'mongoose'
 import Debug from 'debug'
 const debug = Debug('collective-musicians-api')
-import http from 'http'
+import app from '../app.js'
+import { API_VERSION } from '../shared/api-version.js'
+
+
+/**
+ * Connect to MongoDB
+ */
+const connection = mongoose.connect(
+  process.env.MONGO_URL,
+  {
+    keepAlive: true,
+    keepAliveInitialDelay: 300000,
+    useNewUrlParser: true,
+    useFindAndModify: false,
+    useUnifiedTopology: process.env.NODE_ENV !== 'test',
+    useCreateIndex: true,
+    autoIndex: process.env.PROD !== 'true'
+  }
+)
+
+connection.then(
+  () => console.log(`Collective Musicians ${API_VERSION} database connection established`),
+  error => console.error(error)
+)
 
 /**
  * Get port from environment and store in Express.

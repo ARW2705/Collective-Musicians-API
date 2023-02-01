@@ -4,29 +4,10 @@ import path from 'path'
 import process from 'process'
 import cookieParser from 'cookie-parser'
 import logger from 'morgan'
-import mongoose from 'mongoose'
 import indexRouter from './routes/index.js'
 import sheetsRouter from './routes/sheets/route.js'
 import usersRouter from './routes/users/route.js'
 import { API_VERSION } from './shared/api-version.js'
-
-const connect = mongoose.connect(
-  process.env.MONGO_URL,
-  {
-    keepAlive: true,
-    keepAliveInitialDelay: 300000,
-    useNewUrlParser: true,
-    useFindAndModify: false,
-    useUnifiedTopology: true,
-    useCreateIndex: true,
-    autoIndex: process.env.PROD !== 'true'
-  }
-)
-
-connect.then(
-  () => console.log(`Collective Musicians ${API_VERSION} database connection established`),
-  error => console.error(error)
-)
 
 const app = express()
 
