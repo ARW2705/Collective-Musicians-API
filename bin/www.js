@@ -22,7 +22,7 @@ const connection = mongoose.connect(
     keepAliveInitialDelay: 300000,
     useNewUrlParser: true,
     useFindAndModify: false,
-    useUnifiedTopology: process.env.NODE_ENV !== 'test',
+    useUnifiedTopology: true,
     useCreateIndex: true,
     autoIndex: process.env.PROD !== 'true'
   }
