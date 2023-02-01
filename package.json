@@ -2,9 +2,10 @@
   "name": "collective-musicians-api",
   "version": "0.0.0",
   "private": true,
-  "main": "./bin/www.mjs",
+  "main": "bin/www.js",
   "scripts": {
-    "start": "node ./bin/www.js"
+    "start": "NODE_OPTIONS='--experimental-specifier-resolution=node' node ./bin/www.js",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' npx jest"
   },
   "dependencies": {
     "@googleapis/oauth2": "^1.0.0",
