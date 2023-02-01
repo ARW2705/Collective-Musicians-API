@@ -8,6 +8,9 @@ import indexRouter from './routes/index.js'
 import sheetsRouter from './routes/sheets/route.js'
 import usersRouter from './routes/users/route.js'
 import { API_VERSION } from './shared/api-version.js'
+import { endStopErrorHandler } from './shared/error-handling/end-stop-error-handler.js'
+import { nonAPIRouteError } from './shared/error-handling/non-api-route-error.js'
+
 
 const app = express()
 
@@ -21,17 +24,14 @@ app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(express.static(path.join(process.cwd(), 'public')))
 
+// api routes
 const API_ROUTE = `collective_musicians_${API_VERSION}`
 app.use('/', indexRouter)
 app.use(`/${API_ROUTE}/spreadsheets`, sheetsRouter)
 app.use(`/${API_ROUTE}/users`, usersRouter)
 
 // catch routes not using the API route
-app.use((req, res, next) => {
-  if (!req.url.includes(API_ROUTE)) {
-    next(createError(400))
-  }
-})
+app.use(nonAPIRouteError(API_ROUTE))
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
@@ -39,20 +39,7 @@ app.use((req, res, next) => {
 })
 
 // error handler
-app.use((err, req, res, next) => {
-  // set locals, only providing error in development
-  res.locals.message = err.message
-  res.locals.error = req.app.get('env') === 'development' ? err : {}
+app.use(endStopErrorHandler(API_ROUTE))
 
-  // render the error page
-  if (req.url.includes(API_ROUTE)) {
-    res.status(err.status || 500)
-    res.setHeader('content-type', 'application/json')
-    res.json({ status: err.status, message: err.message })
-  } else {
-    res.status(400)
-    res.render('error')
-  }
-})
 
 export default app
