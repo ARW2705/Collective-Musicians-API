@@ -1,6 +1,6 @@
-import { indexToColAlpha } from '../../shared/index-to-col-alpha'
-import { filter, buildConditionGroups } from '../../shared/query/filter'
-import { getSheetValues } from '../../sheets/connector/connector'
+import { indexToColAlpha } from '../../shared/index-to-col-alpha.js'
+import { filter, buildConditionGroups } from '../../shared/query/filter.js'
+import { getSheetValues } from '../../sheets/connector/connector.js'
 
 
 /**

@@ -1,13 +1,14 @@
 import createError from 'http-errors'
 import express from 'express'
 import path from 'path'
+import process from 'process'
 import cookieParser from 'cookie-parser'
 import logger from 'morgan'
 import mongoose from 'mongoose'
-import indexRouter from './routes/index'
-import sheetsRouter from './routes/sheets/route'
-import usersRouter from './routes/users/route'
-import { API_VERSION } from './shared/api-version'
+import indexRouter from './routes/index.js'
+import sheetsRouter from './routes/sheets/route.js'
+import usersRouter from './routes/users/route.js'
+import { API_VERSION } from './shared/api-version.js'
 
 const connect = mongoose.connect(
   process.env.MONGO_URL,
@@ -30,14 +31,14 @@ connect.then(
 const app = express()
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'))
+app.set('views', path.join(process.cwd(), 'views'))
 app.set('view engine', 'hbs')
 
 app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
-app.use(express.static(path.join(__dirname, 'public')))
+app.use(express.static(path.join(process.cwd(), 'public')))
 
 const API_ROUTE = `collective_musicians_${API_VERSION}`
 app.use('/', indexRouter)

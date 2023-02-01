@@ -1,4 +1,4 @@
-import { compareDateArrays, parseDate, parseDateTarget, parseNumber } from './condition-helpers'
+import { compareDateArrays, parseDate, parseDateTarget, parseNumber } from './condition-helpers.js'
 
 
 /**

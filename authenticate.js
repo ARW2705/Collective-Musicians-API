@@ -4,7 +4,7 @@ import { Strategy as LocalStrategy } from 'passport-local'
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
 import jwt from 'jsonwebtoken'
 
-import User from './models/User'
+import User from './models/User.js'
 
 
 passport.use(new LocalStrategy(User.authenticate()))

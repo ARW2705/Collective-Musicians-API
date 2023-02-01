@@ -1,4 +1,4 @@
-import * as conditionals from './conditionals'
+import * as conditionals from './conditionals.js'
 
 
 /**

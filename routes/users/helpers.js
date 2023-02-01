@@ -1,4 +1,4 @@
-import { generateToken } from '../../authenticate'
+import { generateToken } from '../../authenticate.js'
 
 
 function composeAuthorizedUserResponse(user) {

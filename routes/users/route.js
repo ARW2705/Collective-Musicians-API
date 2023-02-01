@@ -1,10 +1,10 @@
 import { Router } from 'express'
 import createError from 'http-errors'
 import passport from 'passport'
-import { verifyAdmin, verifyUser } from '../../authenticate'
-import User from '../../models/User'
-import handleError from '../../shared/custom-error-handlers/handle-error'
-import { composeAuthorizedUserResponse } from './helpers'
+import { verifyAdmin, verifyUser } from '../../authenticate.js'
+import User from '../../models/User.js'
+import handleError from '../../shared/custom-error-handlers/handle-error.js'
+import { composeAuthorizedUserResponse } from './helpers.js'
 
 
 const usersRouter = Router()

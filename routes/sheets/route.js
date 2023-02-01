@@ -1,8 +1,8 @@
 import { Router } from 'express'
 import createError from 'http-errors'
-import { verifyUser } from '../../authenticate'
-import { getSpreadSheetMetaData, getSheetValues, mapColumns, getColumnMap } from '../../sheets/connector/connector'
-import { queryToRange, getFilteredSheet, getSheet, getColumnNames, getRowLimits } from './helpers'
+import { verifyUser } from '../../authenticate.js'
+import { getSpreadSheetMetaData, getSheetValues, mapColumns, getColumnMap } from '../../sheets/connector/connector.js'
+import { queryToRange, getFilteredSheet, getSheet, getColumnNames, getRowLimits } from './helpers.js'
 
 
 const sheetsRouter = Router()

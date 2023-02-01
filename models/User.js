@@ -1,4 +1,5 @@
-import { Schema, model } from 'mongoose'
+import mongoose from 'mongoose'
+const { Schema, model } = mongoose
 import uniqueValidator from 'mongoose-unique-validator'
 import passportLocalMongoose from 'passport-local-mongoose'
 

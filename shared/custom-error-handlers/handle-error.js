@@ -1,7 +1,7 @@
 import createError from 'http-errors'
-import { createIdCastError } from './id-cast-error'
-import { createMongoError } from './mongo-error'
-import { createValidationError } from './validation-error'
+import { createIdCastError } from './id-cast-error.js'
+import { createMongoError } from './mongo-error.js'
+import { createValidationError } from './validation-error.js'
 
 
 const REGISTRATION_ERROR_NAMES = [

@@ -1,10 +1,10 @@
 import { sheets } from '@googleapis/sheets'
-import { OAuth2Client } from 'google-auth-library'
-import SpreadsheetMetadata from '../../models/SpreadsheetMetadata'
-import { indexToColAlpha } from '../../shared/index-to-col-alpha'
+import { auth } from '@googleapis/oauth2'
+import SpreadsheetMetadata from '../../models/SpreadsheetMetadata.js'
+import { indexToColAlpha } from '../../shared/index-to-col-alpha.js'
 
 
-const connector = new OAuth2Client(
+const connector = new auth.OAuth2(
   process.env.OAUTH_CLIENT_ID,
   process.env.OAUTH_CLIENT_SECRET
 )

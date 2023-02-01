@@ -2,15 +2,15 @@
   "name": "collective-musicians-api",
   "version": "0.0.0",
   "private": true,
+  "main": "./bin/www.mjs",
   "scripts": {
-    "start": "node -r esm ./bin/www"
+    "start": "node ./bin/www.js"
   },
   "dependencies": {
     "@googleapis/oauth2": "^1.0.0",
     "@googleapis/sheets": "^4.0.1",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
-    "esm": "^3.2.25",
     "express": "^4.18.2",
     "hbs": "^4.2.0",
     "http-errors": "~1.6.3",
@@ -22,5 +22,6 @@
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "passport-local-mongoose": "^7.1.2"
-  }
+  },
+  "type": "module"
 }
