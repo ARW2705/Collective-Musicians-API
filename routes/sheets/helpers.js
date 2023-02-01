@@ -55,7 +55,7 @@ function getRowLimits(page, limit) {
  * 
  * @param  {String} spreadsheetId - id of the parent spreadsheet
  * @param  {String} sheetName - name of the sheet to filter
- * @param  {String[]} columnNames - array of columns names
+ * @param  {String[]} columnNames - array of columns names; used in document formation
  * @param  {Number} rowStart - pagination start
  * @param  {Number} rowEnd - pagination end
  * @return {Object[]} array of document objects
