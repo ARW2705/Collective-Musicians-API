@@ -1,9 +1,11 @@
 import { Router } from 'express'
 import createError from 'http-errors'
 import passport from 'passport'
+
 import { verifyAdmin, verifyUser } from '../../authenticate.js'
 import User from '../../models/User.js'
 import handleError from '../../shared/error-handling/handle-error.js'
+
 import { composeAuthorizedUserResponse } from './helpers.js'
 
 
@@ -28,25 +30,6 @@ usersRouter.get('/', verifyUser, verifyAdmin, async (req, res, next) => {
   }
 })
 
-usersRouter.get('/:userId', verifyUser, verifyAdmin, async (req, res, next) => {
-  try {
-    const user = await User.findById(req.params.userId).exec()
-    if (!user) return next(createError(404, 'User not found'))
-
-    res.statusCode = 200
-    res.setHeader('content-type', 'application/json')
-    res.json({
-      id: user._id,
-      username: user.username,
-      email: user.email,
-      admin: user.admin,
-      editor: user.editor
-    })
-  } catch (error) {
-    return next(error)
-  }
-})
-
 usersRouter.get('/profile', verifyUser, async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id).exec()
@@ -59,6 +42,7 @@ usersRouter.get('/profile', verifyUser, async (req, res, next) => {
       email: user.email
     })
   } catch (error) {
+    // TODO: make custom error if req.user is missing
     return next(error)
   }
 })
@@ -86,6 +70,25 @@ usersRouter.post('/signup', async (req, res, next) => {
     })
   } catch (error) {
     return next(handleError(error))
+  }
+})
+
+usersRouter.get('/:userId', verifyUser, verifyAdmin, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.userId).exec()
+    if (!user) return next(createError(404, 'User not found'))
+
+    res.statusCode = 200
+    res.setHeader('content-type', 'application/json')
+    res.json({
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      admin: user.admin,
+      editor: user.editor
+    })
+  } catch (error) {
+    return next(error)
   }
 })
 
