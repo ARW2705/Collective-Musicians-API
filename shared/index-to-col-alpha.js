@@ -6,8 +6,8 @@ const alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M
  * @param: index - numerical index to convert
  * @return: A1 notation of the given index
  * @example:
- *  4 -> 'D'
- *  47 -> 'AU'
+ *  4 -> 'E'
+ *  47 -> 'AV'
  *  600 -> 'WC'
  *  702 -> 'AAA'
  */
