@@ -4,23 +4,23 @@ import * as conditionals from './conditionals.js'
 /**
  * Map array of conditions with their appropriate checking function
  * 
- * @param  {Object[]} conditionGroup - array of condition objects
+ * @param  {Object} conditionGroup - condition groups without validation functions attached
  * @return {Object} object with the applicable column name as the key
  *                  and checking function as the value
  */
 function buildConditionGroup(conditionGroup) {
   let configuredConditionGroup = {}
-  conditionGroup.forEach(conditions => {
-    const { columnName, condition, target, options = {} } = conditions
+  for (const key in conditionGroup) {
+    const { condition, target, options = {} } = conditionGroup[key]
     if (!Object.keys(conditionals).includes(condition)) {
       throw new Error(`Unknown query conditional: ${condition}`)
     }
 
     configuredConditionGroup = {
       ...configuredConditionGroup,
-      [columnName]: conditionals[condition](target, options)
+      [key]: conditionals[condition](target, options)
     }
-  })
+  }
 
   return configuredConditionGroup
 }
@@ -70,7 +70,7 @@ function buildDocument(row, includeColumns, columnNames) {
 /**
  * Build an array of condition group objects
  * 
- * @param  {Object[][]} conditions - request input array of array of conditions 
+ * @param  {Object[]} conditions - request input array of conditions 
  * @return {Object[]} array of configured condition group objects
  */
  function buildConditionGroups(conditions) {
