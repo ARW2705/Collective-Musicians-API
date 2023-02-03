@@ -3,15 +3,22 @@
  * 
  * @param  {String} date - a year value or a slash/dash formatted date
  * @param  {String} [delimiter] - character to split date on if it is formatted
+ * @param  {String} [format] - the representation of the date; Defaults to Month/Day/Year
+ *                             (e.g. month/day/year -> 'mdy'; day/month/year -> 'dmy')
  * @return {Number[]} array of date values in the order of Year -> Month -> Day
  */
- function splitDateString(date, delimiter) {
+function _splitDateString(date, delimiter, format = 'mdy') {
   if (!delimiter) return [+date]
 
   const strDates = date.split(delimiter)
-  if (strDates[0].length < strDates[strDates.length - 1].length) strDates.reverse()
-  
-  return strDates.map(strDate => +strDate)
+  let orderedValues = [...strDates]
+  if (strDates.length === 2) {
+    orderedValues.reverse()
+  } else if (strDates.length === 3) {
+    orderedValues = [strDates[format.indexOf('y')], strDates[format.indexOf('m')], strDates[format.indexOf('d')]]
+  }
+
+  return orderedValues.map(strDate => +strDate)
 }
 
 /**
@@ -29,7 +36,7 @@
  * dateArr2 = [1990, 5]
  * returns 0 - only years and months will be compared, day within dateArr1 will be ignored 
  */
- function compareDateArrays(dateArr1, dateArr2) {
+function compareDateArrays(dateArr1, dateArr2) {
   if (!dateArr1.length || !dateArr2.length) throw new Error('Cannot compare empty date')
 
   const smallerLength = (dateArr1.length < dateArr2.length ? dateArr1 : dateArr2).length
@@ -48,14 +55,14 @@
  * @param  {String} date - may be a single year (e.g. '1990') or a separated date (e.g. '1/1/1999')
  * @return {Number[]} date values in the order of Year -> Month -> Day
  */
- function parseDate(date) {
+function parseDate(date) {
   if (date === '') return null
 
   let delimiter = null
   if (date.includes('/')) delimiter = '/'
   if (date.includes('-')) delimiter = '-'
 
-  return splitDateString(date, delimiter)
+  return _splitDateString(date, delimiter)
 }
 
 /**
@@ -76,7 +83,7 @@ function parseDateTarget(target) {
  * @param  {String | Number} value - a number, string of number, or string of currency
  * @return {Number} the value as a number - throws if value cannot be parsed 
  */
- function parseNumber(value) {
+function parseNumber(value) {
   if (typeof value === 'string') {
     value = value.replace('$', '')
     value = value.replaceAll(',', '')
@@ -92,6 +99,7 @@ function parseDateTarget(target) {
 
 
 export {
+  _splitDateString,
   compareDateArrays,
   parseDate,
   parseDateTarget,
