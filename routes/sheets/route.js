@@ -1,6 +1,5 @@
 import { Router } from 'express'
 import createError from 'http-errors'
-import { verifyUser } from '../../authenticate.js'
 import { getSpreadSheetMetaData, getSheetValues, mapColumns, getColumnMap } from '../../sheets/connector/connector.js'
 import { queryToRange, getFilteredSheet, getSheet, getColumnNames, getRowLimits } from './helpers.js'
 
@@ -8,7 +7,7 @@ import { queryToRange, getFilteredSheet, getSheet, getColumnNames, getRowLimits 
 const sheetsRouter = Router()
 
 sheetsRouter.route('/:spreadsheetId')
-  .get(verifyUser, async (req, res, next) => {
+  .get(async (req, res, next) => {
     try {
       res.statusCode = 200
       res.setHeader('content-type', 'application/json')
@@ -19,7 +18,7 @@ sheetsRouter.route('/:spreadsheetId')
   })
 
 sheetsRouter.route('/:spreadsheetId/query')
-  .get(verifyUser, async (req, res, next) => {
+  .get(async (req, res, next) => {
     try {
       const { sheetName, rowStart, rowEnd, colStart, colEnd } = req.query
       const range = queryToRange(sheetName, rowStart, rowEnd, colStart, colEnd)
@@ -34,7 +33,7 @@ sheetsRouter.route('/:spreadsheetId/query')
   })
 
 sheetsRouter.route('/:spreadsheetId/query-terms')
-  .get(verifyUser, async (req, res, next) => {
+  .get(async (req, res, next) => {
     try {
       const columnsMap = await getColumnMap(req.params.spreadsheetId)
       let queryTerms = {}
@@ -55,7 +54,7 @@ sheetsRouter.route('/:spreadsheetId/query-terms')
   })
 
 sheetsRouter.route('/:spreadsheetId/refresh-query-terms')
-  .get(verifyUser, async (req, res, next) => {
+  .get(async (req, res, next) => {
     try {
       const { spreadsheetId } = req.params
       await mapColumns(spreadsheetId)
@@ -69,7 +68,7 @@ sheetsRouter.route('/:spreadsheetId/refresh-query-terms')
   })
 
 sheetsRouter.route('/:spreadsheetId/sheet')
-  .get(verifyUser, async (req, res, next) => {
+  .get(async (req, res, next) => {
     try {
       const { spreadsheetId } = req.params
       const { page = 1, limit = 50, sheetName } = req.query
@@ -83,7 +82,7 @@ sheetsRouter.route('/:spreadsheetId/sheet')
       return next(error)
     }
   })
-  .post(verifyUser, async (req, res, next) => {
+  .post(async (req, res, next) => {
     try {
       const { spreadsheetId } = req.params
       const { page = 1, limit = 50, sheetName } = req.query
