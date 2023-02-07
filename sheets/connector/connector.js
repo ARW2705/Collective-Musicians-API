@@ -1,7 +1,5 @@
 import { sheets } from '@googleapis/sheets'
 import { auth } from '@googleapis/oauth2'
-import SpreadsheetMetadata from '../../models/SpreadsheetMetadata.js'
-import { indexToColAlpha } from '../../shared/index-to-col-alpha.js'
 
 
 const connector = new auth.OAuth2(
@@ -29,36 +27,8 @@ async function getSheetValues(spreadsheetId, range) {
   })).data 
 }
 
-async function mapColumns(spreadsheetId) {
-  const spreadsheet = await getSpreadSheetMetaData(spreadsheetId)
-  let columnsMap = {}
-  await Promise.all(spreadsheet.sheets.map(async sheet => {
-    const { properties } = sheet
-    const { title } = properties
-    const colValuesResponse = await getSheetValues(spreadsheetId, `${title}!1:1`)
-    let columnMap = {}
-    if (!!colValuesResponse.values) {
-      const colNames = colValuesResponse.values[0]
-      colNames.forEach((colName, index) => {
-        if (!!colName) columnMap = { ...columnMap, [colName]: indexToColAlpha(index) }
-      })
-    }
-
-    columnsMap = { ...columnsMap, [title]: columnMap }
-  }))
-
-  await SpreadsheetMetadata.findOneAndUpdate({ spreadsheetId }, { columnsMap }, { upsert: true }).exec()
-}
-
-async function getColumnMap(spreadsheetId) {
-  const metadata = await SpreadsheetMetadata.findOne({ spreadsheetId }).exec()
-  return metadata.columnsMap
-}
-
 
 export {
   getSpreadSheetMetaData,
-  getSheetValues,
-  mapColumns,
-  getColumnMap
+  getSheetValues
 }
