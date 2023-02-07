@@ -1,19 +1,26 @@
 import { Router } from 'express'
 import createError from 'http-errors'
 import { verifyUser } from '../../authenticate.js'
+import Definitions from '../../models/Definitions.js'
 import { getSpreadSheetMetaData } from '../../sheets/connector/connector.js'
 import { getFilteredSheet, getSheet, getColumnNames, getRowLimits } from './helpers.js'
 
 
 const sheetsRouter = Router()
 
-sheetsRouter.route('/:spreadsheetId')
+sheetsRouter.route('/')
   .get(async (req, res, next) => {
     try {
-      const { properties, sheets } = await getSpreadSheetMetaData(req.params.spreadsheetId)
+      const { connectedSpreadsheetId } = await Definitions.findOne({}).exec()
+      const { properties, sheets } = await getSpreadSheetMetaData(connectedSpreadsheetId)
       const response = {
-        spreadsheetTitle: properties.title,
-        sheetNames: sheets.map(sheetData => sheetData.properties.title)
+        id: connectedSpreadsheetId,
+        name: properties.title,
+        sheets: await Promise.all(sheets.map(async sheet => ({
+          name: sheet.properties.title,
+          columnNames: (await getColumnNames(connectedSpreadsheetId, sheet.properties.title))
+            .filter(name => name !== '')
+        })))
       }
 
       res.statusCode = 200
@@ -24,42 +31,42 @@ sheetsRouter.route('/:spreadsheetId')
     }
   })
 
-sheetsRouter.route('/:spreadsheetId/sheet')
+sheetsRouter.route('/sheet')
   .get(verifyUser, async (req, res, next) => {
     try {
-      const { spreadsheetId } = req.params
+      const { connectedSpreadsheetId } = await Definitions.findOne({}).exec()
       const { page = 1, limit = 50, sheetName } = req.query
       const { rowStart, rowEnd } = getRowLimits(page, limit)
-      const columnNames = await getColumnNames(spreadsheetId, sheetName)
+      const columnNames = await getColumnNames(connectedSpreadsheetId, sheetName)
 
       res.statusCode = 200
       res.setHeader('content-type', 'application/json')
-      res.json(await getSheet(spreadsheetId, sheetName, columnNames, rowStart, rowEnd))
+      res.json(await getSheet(connectedSpreadsheetId, sheetName, columnNames, rowStart, rowEnd))
     } catch (error) {
       return next(error)
     }
   })
   .post(verifyUser, async (req, res, next) => {
     try {
-      const { spreadsheetId } = req.params
+      const { connectedSpreadsheetId } = await Definitions.findOne({}).exec()
       const { page = 1, limit = 50, sheetName } = req.query
       const { filter } = req.body
       const { rowStart, rowEnd } = getRowLimits(page, limit)
 
       res.statusCode = 200
       res.setHeader('content-type', 'application/json')
-      res.json(await getFilteredSheet(spreadsheetId, sheetName, filter, rowStart, rowEnd))
+      res.json(await getFilteredSheet(connectedSpreadsheetId, sheetName, filter, rowStart, rowEnd))
     } catch (error) {
       return next(error)
     }
   })
 
-sheetsRouter.route('/:spreadsheetId/sheet/columns')
+sheetsRouter.route('/sheet/columns')
   .get(async (req, res, next) => {
     try {
-      const { spreadsheetId } = req.params
+      const { connectedSpreadsheetId } = await Definitions.findOne({}).exec()
       const { sheetName } = req.query
-      const response = (await getColumnNames(spreadsheetId, sheetName))
+      const response = (await getColumnNames(connectedSpreadsheetId, sheetName))
         .filter(name => name !== '')
 
       res.statusCode = 200

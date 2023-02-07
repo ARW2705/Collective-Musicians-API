@@ -13,7 +13,8 @@ import { getSheetValues } from '../../sheets/connector/connector.js'
 async function getColumnNames(spreadsheetId, sheetName) {
   const columnNameRange = queryToRange(sheetName, 1)
   const columnNamesResponse = await getSheetValues(spreadsheetId, columnNameRange)
-  return columnNamesResponse.values[0]
+  const { values } = columnNamesResponse
+  return values?.length > 0 ? values[0] : []
 }
 
 /**
