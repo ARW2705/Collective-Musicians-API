@@ -10,9 +10,15 @@ const sheetsRouter = Router()
 sheetsRouter.route('/:spreadsheetId')
   .get(verifyUser, async (req, res, next) => {
     try {
+      const { properties, sheets } = await getSpreadSheetMetaData(req.params.spreadsheetId)
+      const response = {
+        spreadsheetTitle: properties.title,
+        sheetNames: sheets.map(sheetData => sheetData.properties.title)
+      }
+
       res.statusCode = 200
       res.setHeader('content-type', 'application/json')
-      res.json(await getSpreadSheetMetaData(req.params.spreadsheetId))
+      res.json(response)
     } catch (error) {
       return next(error)
     }
