@@ -31,8 +31,8 @@ sheetsRouter.route('/')
     }
   })
 
-sheetsRouter.route('/sheet')
-  .get(verifyUser, async (req, res, next) => {
+sheetsRouter.route('/sheet/query')
+  .get(async (req, res, next) => {
     try {
       const { connectedSpreadsheetId } = await Definitions.findOne({}).exec()
       const { page = 1, limit = 50, sheetName } = req.query
@@ -46,7 +46,7 @@ sheetsRouter.route('/sheet')
       return next(error)
     }
   })
-  .post(verifyUser, async (req, res, next) => {
+  .post(async (req, res, next) => {
     try {
       const { connectedSpreadsheetId } = await Definitions.findOne({}).exec()
       const { page = 1, limit = 50, sheetName } = req.query
@@ -57,6 +57,7 @@ sheetsRouter.route('/sheet')
       res.setHeader('content-type', 'application/json')
       res.json(await getFilteredSheet(connectedSpreadsheetId, sheetName, filter, rowStart, rowEnd))
     } catch (error) {
+      console.log(error)
       return next(error)
     }
   })
