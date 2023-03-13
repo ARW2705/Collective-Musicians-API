@@ -60,11 +60,11 @@ function equal(target, options) {
 
   return function(value) {
     const _value = String(value)
-    if (options.ignoreCase) {
-      return _value.toLowerCase() === _target.toLowerCase()
+    if (options.matchCase) {
+      return _value === _target
     }
-
-    return _value === _target
+    
+    return _value.toLowerCase() === _target.toLowerCase()
   }
 }
 
@@ -79,11 +79,11 @@ function notEqual(target, options) {
 
   return function(value) {
     const _value = String(value)
-    if (options.ignoreCase) {
-      return _value.toLowerCase() !== _target.toLowerCase()
+    if (options.matchCase) {
+      return _value !== _target
     }
-
-    return _value !== _target
+    
+    return _value.toLowerCase() !== _target.toLowerCase()
   }
 }
 
