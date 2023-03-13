@@ -11,14 +11,16 @@ import * as conditionals from './conditionals.js'
 function buildConditionGroup(conditionGroup) {
   let configuredConditionGroup = {}
   for (const key in conditionGroup) {
-    const { condition, target, options = {} } = conditionGroup[key]
-    if (!Object.keys(conditionals).includes(condition)) {
-      throw new Error(`Unknown query conditional: ${condition}`)
-    }
-
     configuredConditionGroup = {
       ...configuredConditionGroup,
-      [key]: conditionals[condition](target, options)
+      [key]: conditionGroup[key]
+        .map(({ condition, target, options = {} }) => {
+          if (!Object.keys(conditionals).includes(condition)) {
+            throw new Error(`Unknown query conditional: ${condition}`)
+          }
+
+          return conditionals[condition](target, options)
+        })
     }
   }
 
@@ -38,11 +40,13 @@ function buildConditionGroup(conditionGroup) {
  *                   a condition that calls for a column name that is not available will always return false
  */
 function isMatchingRow(row, columnNames, conditions) {
+  if (!conditions.length) return true
+
   return conditions.some(conditionGroup => {
     for (const key in conditionGroup) {
       const columnIndex = columnNames.findIndex(columnName => columnName === key)
       if (columnIndex === -1 || columnIndex >= row.length) return false
-      if (!conditionGroup[key](row[columnIndex])) return false
+      if (!conditionGroup[key].every(condition => condition(row[columnIndex]))) return false
     }
 
     return true
@@ -60,9 +64,15 @@ function isMatchingRow(row, columnNames, conditions) {
 function buildDocument(row, includeColumns, columnNames) {
   return includeColumns.reduce((doc, column) => {
     const columnIndex = columnNames.findIndex(columnName => columnName === column)
-    const value = columnIndex !== -1 && columnIndex < row.length
-      ? row[columnIndex]
-      : 'ERROR: Column Not Defined'
+    let value
+    if (columnIndex === -1) {
+      value = 'Error: Column Not Defined'
+    } else if (columnIndex >= row.length || !row[columnIndex]) {
+      value = 'No value'
+    } else {
+      value = row[columnIndex]
+    }
+
     return { ...doc, [column]: value }
   }, {})
 }
@@ -74,6 +84,7 @@ function buildDocument(row, includeColumns, columnNames) {
  * @return {Object[]} array of configured condition group objects
  */
  function buildConditionGroups(conditions) {
+  if (!conditions) return []
   return conditions.map(conditionGroup => buildConditionGroup(conditionGroup))
 }
 
@@ -84,28 +95,32 @@ function buildDocument(row, includeColumns, columnNames) {
  * @param  {Object} filters - object containing columns to include and filter conditions
  * @param  {Number} rowStart - pagination start
  * @param  {Number} rowEnd - pagination end
- * @return {Object[]} array of objects containing key:value pairs of filtered data
+ * @return {Object[],Number} array of objects containing key:value pairs of filtered data and the total matched count
  */
 function filter(sheet, filters, rowStart, rowEnd) {
+  if (rowStart > sheet.length) return []
+
   const allColumnNames = sheet[0]
-  const { includeColumns, conditions } = filters
-  const responseColumns = includeColumns && includeColumns.length > 0 ? includeColumns : allColumnNames
-  let response = []
+  const { conditions } = filters
+  let responseIndices = []
   let matchCount = 0
   for (let index = 1; index < sheet.length; index++) {
     const row = sheet[index]
     if (isMatchingRow(row, allColumnNames, conditions)) {
       matchCount++
 
-      if (matchCount >= rowStart - 1) {
-        response = [...response, buildDocument(row, responseColumns, allColumnNames)]
+      if (matchCount >= rowStart - 1 && matchCount < rowEnd) {
+        responseIndices = [...responseIndices, index]
       }
-
-      if (matchCount >= rowEnd - 1) break
     }
   }
 
-  return response
+  const { includeColumns } = filters
+  const responseColumns = includeColumns && includeColumns.length > 0 ? includeColumns : allColumnNames
+  return {
+    results: responseIndices.map(index => buildDocument(sheet[index], responseColumns, allColumnNames)),
+    resultCount: matchCount
+  }
 }
 
 
