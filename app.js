@@ -4,6 +4,7 @@ import path from 'path'
 import process from 'process'
 import cookieParser from 'cookie-parser'
 import logger from 'morgan'
+import announcementsRouter from './routes/announcements/route.js'
 import indexRouter from './routes/index.js'
 import sheetsRouter from './routes/sheets/route.js'
 import usersRouter from './routes/users/route.js'
@@ -27,6 +28,7 @@ app.use(express.static(path.join(process.cwd(), 'public')))
 // api routes
 const API_ROUTE = `collective_musicians_${API_VERSION}`
 app.use('/', indexRouter)
+app.use(`/${API_ROUTE}/announcements`, announcementsRouter)
 app.use(`/${API_ROUTE}/spreadsheets`, sheetsRouter)
 app.use(`/${API_ROUTE}/users`, usersRouter)
 
