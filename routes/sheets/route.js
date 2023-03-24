@@ -75,12 +75,12 @@ sheetsRouter.route('/sheet/query')
     try {
       const { connectedSpreadsheetId } = await Definitions.findOne({}).exec()
       const { page = 1, limit = 50, sheetName } = req.query
-      const { filter } = req.body
+      const { filter, sort } = req.body
       const { rowStart, rowEnd } = getRowLimits(page, limit)
 
       res.statusCode = 200
       res.setHeader('content-type', 'application/json')
-      res.json(await getFilteredSheet(connectedSpreadsheetId, sheetName, filter, rowStart, rowEnd))
+      res.json(await getFilteredSheet(connectedSpreadsheetId, sheetName, filter, sort, rowStart, rowEnd))
     } catch (error) {
       console.log(error)
       return next(error)

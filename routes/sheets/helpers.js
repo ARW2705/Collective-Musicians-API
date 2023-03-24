@@ -1,6 +1,7 @@
 import { indexToColAlpha } from '../../shared/index-to-col-alpha.js'
 import { filter, buildConditionGroups } from '../../shared/query/filter.js'
 import { getSheetValues } from '../../sheets/connector/connector.js'
+import { defaultSort } from '../../shared/default-sort.js'
 
 
 /**
@@ -23,18 +24,25 @@ async function getColumnNames(spreadsheetId, sheetName) {
  * @param  {String} spreadsheetId - id of the parent spreadsheet
  * @param  {String} sheetName - name of the sheet to filter
  * @param  {Object} queryFilter - filtering config data
+ * @param  {Object} sort - object with sorting prop and isAscending flag
  * @param  {Number} rowStart - pagination start
  * @param  {Number} rowEnd - pagination end
  * @return {Object[]} array of filtered document objects
  */
-async function getFilteredSheet(spreadsheetId, sheetName, queryFilter, rowStart, rowEnd) {
+async function getFilteredSheet(spreadsheetId, sheetName, queryFilter, sort, rowStart, rowEnd) {
   const { values } = await getSheetValues(spreadsheetId, sheetName)
   const filters = {
     includeColumns: queryFilter.includeColumns,
     conditions: buildConditionGroups(queryFilter.conditions)
   }
 
-  return filter(values, filters, rowStart, rowEnd)
+  let sortingCallback
+  if (sort) {
+    const { prop, isDescending } = sort
+    sortingCallback = defaultSort(prop, isDescending)
+  }
+
+  return filter(values, filters, sortingCallback, rowStart, rowEnd)
 }
 
 /**
