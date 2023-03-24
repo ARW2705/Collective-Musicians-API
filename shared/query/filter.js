@@ -95,11 +95,10 @@ function buildDocument(row, includeColumns, columnNames) {
  * @param  {Object} filters - object containing columns to include and filter conditions
  * @param  {Number} rowStart - pagination start
  * @param  {Number} rowEnd - pagination end
+ * @param  {Function} sortingCallback - optional callback for array.prototype.sort function
  * @return {Object[],Number} array of objects containing key:value pairs of filtered data and the total matched count
  */
-function filter(sheet, filters, rowStart, rowEnd) {
-  if (rowStart > sheet.length) return []
-
+function filter(sheet, filters, sortingCallback, rowStart, rowEnd) {
   const allColumnNames = sheet[0]
   const { conditions } = filters
   let responseIndices = []
@@ -118,7 +117,9 @@ function filter(sheet, filters, rowStart, rowEnd) {
   const { includeColumns } = filters
   const responseColumns = includeColumns && includeColumns.length > 0 ? includeColumns : allColumnNames
   return {
-    results: responseIndices.map(index => buildDocument(sheet[index], responseColumns, allColumnNames)),
+    results: responseIndices
+      .map(index => buildDocument(sheet[index], responseColumns, allColumnNames))
+      .sort(sortingCallback),
     resultCount: matchCount
   }
 }
