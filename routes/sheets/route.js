@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import createError from 'http-errors'
-import { verifyUser } from '../../authenticate.js'
+import { verifyAdmin, verifyUser } from '../../authenticate.js'
 import { toCamelCase } from '../../shared/to-camel-case.js'
 import Definitions from '../../models/Definitions.js'
 import { getSpreadSheetMetaData } from '../../sheets/connector/connector.js'
@@ -26,7 +26,7 @@ sheetsRouter.route('/')
         sheets: configuredSheets
       }
 
-      const contextSheetName = 'Internal Sheets Context'
+      const contextSheetName = 'Internal Spreadsheet'
       const contextSheetIndex = configuredSheets.findIndex(sheet => sheet.name === contextSheetName)
       if (contextSheetIndex !== -1) {
         const contentSheets = [...configuredSheets.slice(0, contextSheetIndex), ...configuredSheets.slice(contextSheetIndex + 1)] 
@@ -94,6 +94,37 @@ sheetsRouter.route('/sheet/columns')
       const { sheetName } = req.query
       const response = (await getColumnNames(connectedSpreadsheetId, sheetName))
         .filter(name => name !== '')
+
+      res.statusCode = 200
+      res.setHeader('content-type', 'application/json')
+      res.json(response)
+    } catch (error) {
+      return next(error)
+    }
+  })
+
+sheetsRouter.route('/sheet/context')
+  .get(async (req, res, next) => {
+    try {
+      const { connectedSpreadsheetId } = await Definitions.findOne({}).exec()
+      const { sheetName: baseSheetName } = req.query
+      const sheetName = `Internal ${baseSheetName}`
+      const columnNames = await getColumnNames(connectedSpreadsheetId, sheetName)
+      const { sheets } = await getSpreadSheetMetaData(connectedSpreadsheetId)
+      const contextSheetProps = sheets.find(sheet => sheet.properties.title === sheetName)
+      let rowEnd = 100
+      if (contextSheetProps) {
+        rowEnd = contextSheetProps.properties.gridProperties.rowCount
+      }
+
+      const response = (await getSheet(connectedSpreadsheetId, sheetName, columnNames, 2, rowEnd))
+        .reduce(
+          (formattedContext, context) => ({
+            ...formattedContext,
+            [context[columnNames[0]]]: context[columnNames[1]]
+          }),
+          {}
+        )
 
       res.statusCode = 200
       res.setHeader('content-type', 'application/json')
