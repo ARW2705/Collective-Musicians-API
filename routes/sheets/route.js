@@ -119,10 +119,21 @@ sheetsRouter.route('/sheet/context')
 
       const response = (await getSheet(connectedSpreadsheetId, sheetName, columnNames, 2, rowEnd))
         .reduce(
-          (formattedContext, context) => ({
-            ...formattedContext,
-            [context[columnNames[0]]]: context[columnNames[1]]
-          }),
+          (formattedContext, context) => {
+            const [keyName, ...dataKeys] = columnNames
+            let nextContext = {}
+            dataKeys.forEach(key => {
+              nextContext = {
+                ...nextContext,
+                [toCamelCase(key)]: context[key]
+              }
+            })
+
+            return {
+              ...formattedContext,
+              [context[keyName]]: nextContext
+            }
+          },
           {}
         )
 
