@@ -5,6 +5,7 @@ import { toCamelCase } from '../../shared/to-camel-case.js'
 import Definitions from '../../models/Definitions.js'
 import { getSpreadSheetMetaData } from '../../sheets/connector/connector.js'
 import { getFilteredSheet, getSheet, getColumnNames, getRowLimits } from './helpers.js'
+import { INTERNAL_SHEET_DELIMITER, SPREADSHEET_CONTEXT_SHEET_NAME } from '../../shared/constants/internal-sheet-delimiter.js'
 
 
 const sheetsRouter = Router()
@@ -14,11 +15,7 @@ sheetsRouter.route('/')
     try {
       const { connectedSpreadsheetId } = await Definitions.findOne({}).exec()
       const { properties, sheets } = await getSpreadSheetMetaData(connectedSpreadsheetId)
-      let configuredSheets = await Promise.all(sheets.map(async sheet => ({
-        name: sheet.properties.title,
-        columnNames: (await getColumnNames(connectedSpreadsheetId, sheet.properties.title))
-          .filter(name => name !== '')
-      })))
+      const configuredSheets = sheets.map(sheet => ({ name: sheet.properties.title, columnNames: [] }))
 
       let response = {
         id: connectedSpreadsheetId,
@@ -26,16 +23,18 @@ sheetsRouter.route('/')
         sheets: configuredSheets
       }
 
-      const contextSheetName = 'Internal Spreadsheet'
-      const contextSheetIndex = configuredSheets.findIndex(sheet => sheet.name === contextSheetName)
-      if (contextSheetIndex !== -1) {
-        const contentSheets = [...configuredSheets.slice(0, contextSheetIndex), ...configuredSheets.slice(contextSheetIndex + 1)] 
-        const columnNames = await getColumnNames(connectedSpreadsheetId, contextSheetName)
-        const contextSheets = await getSheet(connectedSpreadsheetId, contextSheetName, columnNames, 2, sheets.length)
+      const contentSheets = configuredSheets
+        .map(sheet => sheet.name.includes(INTERNAL_SHEET_DELIMITER) ? null : sheet)
+        .filter(sheet => sheet !== null)
+
+      if (contentSheets.length > 0) {
+        const columnNames = await getColumnNames(connectedSpreadsheetId, SPREADSHEET_CONTEXT_SHEET_NAME)
+        const contextSheets = await getSheet(connectedSpreadsheetId, SPREADSHEET_CONTEXT_SHEET_NAME, 2, sheets.length, columnNames)
+        
         response = {
           ...response,
           sheets: contentSheets,
-          contextSheet: contextSheets.reduce((acc, curr) => {
+          sheetContext: contextSheets.reduce((acc, curr) => {
             const { 'Sheet Name': sheetName, ...remainder } = curr
             let context = {}
             for (const key in remainder) {
@@ -56,6 +55,25 @@ sheetsRouter.route('/')
     }
   })
 
+sheetsRouter.route('/sheet')
+  .get(async (req, res, next) => {
+    try {
+      const { connectedSpreadsheetId } = await Definitions.findOne({}).exec()
+      const { sheetName } = req.query
+      const { sheets } = await getSpreadSheetMetaData(connectedSpreadsheetId)
+      const contextSheetProps = sheets.find(sheet => sheet.properties.title === sheetName)
+      const rowEnd = contextSheetProps
+        ? contextSheetProps.properties.gridProperties.rowCount
+        : 1000
+
+      res.statusCode = 200
+      res.setHeader('content-type', 'application/json')
+      res.json(await getSheet(connectedSpreadsheetId, sheetName, 2, rowEnd))
+    } catch (error) {
+      return next(error)
+    }
+  })
+
 sheetsRouter.route('/sheet/query')
   .get(async (req, res, next) => {
     try {
@@ -66,7 +84,7 @@ sheetsRouter.route('/sheet/query')
 
       res.statusCode = 200
       res.setHeader('content-type', 'application/json')
-      res.json(await getSheet(connectedSpreadsheetId, sheetName, columnNames, rowStart, rowEnd))
+      res.json(await getSheet(connectedSpreadsheetId, sheetName, rowStart, rowEnd, columnNames))
     } catch (error) {
       return next(error)
     }
@@ -108,8 +126,9 @@ sheetsRouter.route('/sheet/context')
     try {
       const { connectedSpreadsheetId } = await Definitions.findOne({}).exec()
       const { sheetName: baseSheetName } = req.query
-      const sheetName = `Internal ${baseSheetName}`
-      const columnNames = await getColumnNames(connectedSpreadsheetId, sheetName)
+      const sheetName = `__Internal ${baseSheetName}`
+      const columnNames = await getColumnNames(connectedSpreadsheetId, baseSheetName)
+      const contextColumnNames = await getColumnNames(connectedSpreadsheetId, sheetName)
       const { sheets } = await getSpreadSheetMetaData(connectedSpreadsheetId)
       const contextSheetProps = sheets.find(sheet => sheet.properties.title === sheetName)
       let rowEnd = 100
@@ -117,10 +136,10 @@ sheetsRouter.route('/sheet/context')
         rowEnd = contextSheetProps.properties.gridProperties.rowCount
       }
 
-      const response = (await getSheet(connectedSpreadsheetId, sheetName, columnNames, 2, rowEnd))
+      const sheetContext = (await getSheet(connectedSpreadsheetId, sheetName, 2, rowEnd, contextColumnNames))
         .reduce(
           (formattedContext, context) => {
-            const [keyName, ...dataKeys] = columnNames
+            const [keyName, ...dataKeys] = contextColumnNames
             let nextContext = {}
             dataKeys.forEach(key => {
               nextContext = {
@@ -139,8 +158,9 @@ sheetsRouter.route('/sheet/context')
 
       res.statusCode = 200
       res.setHeader('content-type', 'application/json')
-      res.json(response)
+      res.json({ columnNames, sheetContext })
     } catch (error) {
+      console.log(error, error.code)
       return next(error)
     }
   })
