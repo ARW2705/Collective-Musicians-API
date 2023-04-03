@@ -9,12 +9,11 @@ import { defaultSort } from '../../shared/default-sort.js'
  * 
  * @param  {String} spreadsheetId - id of the parent spreadsheet
  * @param  {String} sheetName - name of the sheet from which to get column names
- * @return {String[]} array of column names
+ * @return {Promise<String[]>} array of column names
  */
 async function getColumnNames(spreadsheetId, sheetName) {
   const columnNameRange = queryToRange(sheetName, 1)
-  const columnNamesResponse = await getSheetValues(spreadsheetId, columnNameRange)
-  const { values } = columnNamesResponse
+  const { values } = await getSheetValues(spreadsheetId, columnNameRange)
   return values?.length > 0 ? values[0] : []
 }
 
@@ -60,24 +59,44 @@ function getRowLimits(page, limit) {
 }
 
 /**
+ * Convert a table-like matrix into an array of objects
+ * 
+ * @param  {Primitive[][]} matrix - matrix with the first row being the column names
+ * @param  {String[]} [keys] - optional keys to be included in the result; all others will be excluded
+ * @return {Object} object with column names as keys and cell as value
+ */
+function documentifyMatrix(matrix, keys) {
+  if (!matrix || !matrix.length) return []
+
+  let dataKeys = keys
+  let dataContent = matrix
+  if (!keys) {
+    [ dataKeys, ...dataContent ] = matrix
+  }
+
+  return dataContent.map(row => {
+    return dataKeys.reduce((doc, dataKey, index) => {
+      if (!dataKey) return doc
+      return { ...doc, [dataKey]: index < row.length ? row[index] : '' }
+    }, {})
+  })
+}
+
+/**
  * Get a paginated sheet as key: value paired documents 
  * 
  * @param  {String} spreadsheetId - id of the parent spreadsheet
  * @param  {String} sheetName - name of the sheet to filter
- * @param  {String[]} columnNames - array of columns names; used in document formation
  * @param  {Number} rowStart - pagination start
  * @param  {Number} rowEnd - pagination end
- * @return {Object[]} array of document objects
+ * @param  {String[]} columnNames - array of columns names; used in document formation
+ * @return {Promise<Object[]>} array of document objects
  */
-async function getSheet(spreadsheetId, sheetName, columnNames, rowStart, rowEnd) {
+async function getSheet(spreadsheetId, sheetName, rowStart, rowEnd, columnNames) {
+  if (!columnNames) rowStart = rowStart > 1 ? rowStart - 1 : 1
   const range = queryToRange(sheetName, rowStart, rowEnd)
   const { values } = await getSheetValues(spreadsheetId, range)
-  return values.map(row => {
-    return columnNames.reduce((doc, columnName, index) => {
-      if (!columnName) return doc
-      return { ...doc, [columnName]: index < row.length ? row[index] : '' }
-    }, {})
-  })
+  return documentifyMatrix(values, columnNames)
 }
 
 /**
