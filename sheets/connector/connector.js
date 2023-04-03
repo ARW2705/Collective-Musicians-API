@@ -12,19 +12,25 @@ connector.setCredentials({ refresh_token: process.env.OAUTH_REFRESH_TOKEN })
 
 async function getSpreadSheetMetaData(spreadsheetId) {
   const mysheets = sheets('v4')
-  return (await mysheets.spreadsheets.get({
+  const timeStart = Date.now()
+  const response = await mysheets.spreadsheets.get({
     auth: connector,
     spreadsheetId
-  })).data
+  })
+  console.log(`Metadata response time: ${Date.now() - timeStart}ms`)
+  return response.data
 }
 
 async function getSheetValues(spreadsheetId, range) {
   const mysheets = sheets('v4')
-  return (await mysheets.spreadsheets.values.get({
+  const timeStart = Date.now()
+  const response = await mysheets.spreadsheets.values.get({
     auth: connector,
     spreadsheetId,
     range
-  })).data 
+  })
+  console.log(`Data response time: ${Date.now() - timeStart}ms`)
+  return response.data
 }
 
 
